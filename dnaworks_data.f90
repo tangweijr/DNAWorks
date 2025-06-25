@@ -63,9 +63,9 @@ MODULE dnaworks_data
   CHARACTER(LEN=80) :: email=''
   CHARACTER(LEN=80) :: jobname=''
   CHARACTER(LEN=80) :: OLDjobname=''
-  CHARACTER(LEN=30) :: oldlogfile="OLDLOGFILE.txt"
-  CHARACTER(LEN=30) :: inputfile="DNAWORKS.inp"
-  CHARACTER(LEN=30) :: outputfile="LOGFILE.txt"
+  CHARACTER(LEN=256) :: oldlogfile="OLDLOGFILE.txt"
+  CHARACTER(LEN=256) :: inputfile="DNAWORKS.inp"
+  CHARACTER(LEN=256) :: outputfile="LOGFILE.txt"
   CHARACTER(LEN=256) :: InputArray(9999) ! contents of DNAWORKS.inp
   CHARACTER(LEN=256) :: InputArrayUC(9999) ! contents of DNAWORKS.inp, uppercase
   INTEGER :: InputArrayNum              ! number of lines in DNAWORKS.inp

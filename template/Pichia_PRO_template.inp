@@ -1,0 +1,757 @@
+# 使用方式为./dnaworks ./XXX.inp 
+# DNAWORKS.inp sample
+# David Hoover, 2010-11-09
+# Directives must be flat against the left margin
+#
+# Comments demarcated by '#'.  All text following # is ignored.
+#
+# $I = integer
+# $R = real, floating point number
+# $S = string (must be in double quotes)
+# [ ] = optional
+# | = exclusive conditional
+
+# 下述“”内输入本次运行项目的名称，例如
+# title $S
+#  TITLE "mutant1"
+#  TITLE "test2" 
+#  TITLE "mutant2" 
+title "pichia_PRO" # default
+
+# 运行时间限制，0表示没有时间限制
+# timelimit 0 # seconds until giving up, 0 means wait forever
+
+# email $S
+# EMAIl "webtools@helix.nih.gov"
+
+# 第二轮组装的Tm，默认62℃，默认第1轮Tm比此温度低4~5℃
+# melting low $I [ high $I ] [ tolerance $I ]
+# melting low 62 # default
+melting low 62 # default
+
+# 引物长度，从【最高】到【最低】，一般设置【57】-【50】。如果Random，则引物长度将随机
+# length low $I [ high $I ] [ random ]
+# length low 40 # default
+length low 57 high 50 # default
+# length low 57 high 50 random
+
+# 密码子频率的阈值，即使用大于百分之多少频率的密码子，例如20意味着密码子频率>20%。如果选择Strict，将每个氨基酸只使用最高密码子频率的密码子。如果勾选Scored，将优化连续长片段、重叠区域的密码子频率分布，例如10xHisTag，不会被优化为(CAT)*10
+# frequency [ threshold $I ] [ random ] [ strict ] [ scored ]
+frequency threshold 20 # default
+# frequency threshold 20 scored
+
+# concentration [ oligo $R ] [ sodium $R ] [ magnesium $R ]
+# concentration oligo 1E-7 sodium 0.05 magnesium 0.002 # default
+
+# 解的数量
+# solutions $I
+# solutions 1 # default
+
+# 大于多少个bp的重复被计算为重复，默认是8。有8个bp完全相同就算是1个重复
+# repeat $I
+# repeat 8 # default
+
+# 大于多少个bp的错配被计算为misprime，默认是连续18个bp中，有6个bp匹配。18bp中有6个bp匹配就算是1个错配
+# misprime $I [ tip $I ] [ max $I ]
+# misprime 18 tip 6 max 8 # default
+
+# weight [ twt #R ] [ cwt #R ] [ rwt #R ] [ mwt #R ] [ gwt #R ] [ awt #R ] [ lwt #R ] [ pwt #R ] [ fwt #R ]
+# weight twt 1.0 cwt 1.0 rwt 1.0 mwt 1.0 gwt 1.0 awt 1.0 lwt 1.0 pwt 1.0 fwt 1.0 # default
+
+# 启动Gao, et al., 2003文中描述的方法
+# tbio
+# 无缝拼接，正常情况下不用，所需要的引物长度更长
+# nogaps
+# 记录结果的输出地址，默认为./XXXXResult.txt，即绝对路径/home/dnaworks/XXXXResult.txt
+# logfile $S
+logfile "./results/pichia_PRO.txt" # default
+#  LOGFILE "MyOutput.txt"
+#  LOGFILE "mutant1.out"
+
+# 读取已经存在的引物，突变部分基因。然后计算突变基因的评分，其重叠位置和参数与原始方案相同。它只输出那些需要改变的引物。数字指的是结果文件中解的编号，例如
+#                          FINAL SUMMARY FOR   8 SOLUTIONS  
+#--------------------------------------------------------------------------------
+#  #    Tm   Len  |    Score   TmRange  Short    Long   #Olig  #Repeat #Misprime
+# 
+#  1    62    50  |    7.432       1.1      16      50       6       3       0
+#  2    62    51  |    3.497       1.2      17      51       6       2       0
+#  3    62    52  |    8.962       0.8      19      52       6       3       0
+#  4    62    53  |   18.142       1.7      19      53       6       4       1
+#  5    62    54  |   53.333       1.3      19      54       6       6       5
+#  6    62    55  |   41.093       1.1      18      55       6       8       3
+#  7    62    56  |   20.328       1.5      17      56       6       2       2
+#  8    62    57  |   23.607       1.9      17      57       6       3       2
+# 中#这一列的编号，字符串是结果文件的路径和名称
+# previous $I [ $S ]
+# previous 1 "LOGFILE.txt" # default
+# previous 7 "./results/diffusionDNaseI.txt"
+# Mutant run:
+#  PREVious 1
+#  PREVious 1 "mutant1.out"
+
+# 需要提示的模式位点，此处表示如果发现BsaI、BspQI，会进行提示，方便后续优化序列，进行GoldenGate的操作；如果发现SacI、SalI、BglII，会进行提示，方便后续序列优化，进行酵母载体构建与转化
+PATTern
+   BsaI GGTCTC
+   BspQI GCTCTTC
+   SacI GAGCTC
+   SalI GTCGAC
+   BglII AGATCT
+//
+
+# 如果计算核苷酸序列，直接替换下述的部分，和计算蛋白质序列二选一
+# ①如果单行输入的字符（nt或者aa）超过255个，超过255个的部分将丢失；②超过255个字符，请以genbank标准格式输入；
+#NUCLeotide
+#   1 mgmahhhhhh mqifvktltg ktitleveps dtienvkaki qdkegippdq qrlifagkql
+#   61 edgrtlsdyn iqkestlhlv lrlrggardg dylhlpsevs rffrpqetnd dhgedsvgtr
+#  121 wavliagskg yanyrhqagv chayqilkrg glkdenivvf myddiaynes nprpgviins
+#  181 phgsdvyagv pkdytgeevn aknflaailg nksaitggsg kvvdsgpndh ifiyytdhga
+#  241 agvigmpskp ylyadelnda lkkkhasgty kslvfyleac esgsmfegil pedlniyalt
+#  301 stnttesswa yycpaqenpp ppeynvclgd lfsvawleds dvqnswyetl nqqyhhvdkr
+#  361 ishashatqy gnlklgeegl fvymgsnpan d
+#//
+
+# 下述为密码子频率表，来源于https://www.kazusa.or.jp/codon/
+# Codon Frequency Tables:
+# 大肠杆菌的密码子频率表
+# CODOn E. coli
+# CODOn ecoli2
+
+# 酿酒酵母的密码子频率表
+# CODOn S. cerevesiae 
+
+# 其他物种的密码子表
+# CODOn C. elegans
+# CODOn D. melanogaster
+# CODOn H. sapiens
+# CODOn M. musculus
+# CODOn R. novegicus
+
+# CODOn
+#Gly     GGG     40359.00     11.39      0.16
+#Gly     GGA     34894.00      9.85      0.13
+#Gly     GGT     89915.00     25.37      0.35
+#Gly     GGC     94608.00     26.70      0.36
+#Glu     GAG     66665.00     18.81      0.33
+#Glu     GAA    137748.00     38.87      0.67
+#Asp     GAT    116164.00     32.78      0.63
+#Asp     GAC     67865.00     19.15      0.37
+#Val     GTG     85263.00     24.06      0.34
+#Val     GTA     41283.00     11.65      0.17
+#Val     GTT     70627.00     19.93      0.29
+#Val     GTC     50417.00     14.23      0.20
+#Ala     GCG    104293.00     29.43      0.32
+#Ala     GCA     75329.00     21.26      0.23
+#Ala     GCT     60787.00     17.15      0.19
+#Ala     GCC     85138.00     24.03      0.26
+#Arg     AGG      7966.00      2.25      0.04
+#Arg     AGA     13784.00      3.89      0.07
+#Ser     AGT     35966.00     10.15      0.16
+#Ser     AGC     53286.00     15.04      0.24
+#Lys     AAG     45133.00     12.74      0.26
+#Lys     AAA    125351.00     35.37      0.74
+#Asn     AAT     75086.00     21.19      0.50
+#Asn     AAC     75334.00     21.26      0.50
+#Met     ATG     92952.00     26.23      1.00
+#Ile     ATA     25982.00      7.33      0.12
+#Ile     ATT    105218.00     29.69      0.49
+#Ile     ATC     83118.00     23.46      0.39
+#Thr     ACG     48560.00     13.70      0.25
+#Thr     ACA     34483.00      9.73      0.17
+#Thr     ACT     37430.00     10.56      0.19
+#Thr     ACC     77023.00     21.74      0.39
+#Trp     TGG     48949.00     13.81      1.00
+#End     TGA      3616.00      1.02      0.31
+#Cys     TGT     18601.00      5.25      0.46
+#Cys     TGC     21434.00      6.05      0.54
+#End     TAG       978.00      0.28      0.08
+#End     TAA      7024.00      1.98      0.60
+#Tyr     TAT     62750.00     17.71      0.59
+#Tyr     TAC     43034.00     12.14      0.41
+#Leu     TTG     45581.00     12.86      0.13
+#Leu     TTA     51320.00     14.48      0.14
+#Phe     TTT     78743.00     22.22      0.58
+#Phe     TTC     56591.00     15.97      0.42
+#Ser     TCG     29993.00      8.46      0.13
+#Ser     TCA     32814.00      9.26      0.15
+#Ser     TCT     37586.00     10.61      0.17
+#Ser     TCC     32586.00      9.20      0.15
+#Arg     CGG     21391.00      6.04      0.11
+#Arg     CGA     13645.00      3.85      0.07
+#Arg     CGT     70009.00     19.76      0.36
+#Arg     CGC     68569.00     19.35      0.35
+#Gln     CAG    100346.00     28.32      0.66
+#Gln     CAA     51275.00     14.47      0.34
+#His     CAT     44633.00     12.60      0.58
+#His     CAC     32678.00      9.22      0.42
+#Leu     CTG    168885.00     47.66      0.47
+#Leu     CTA     15275.00      4.31      0.04
+#Leu     CTT     42704.00     12.05      0.12
+#Leu     CTC     35873.00     10.12      0.10
+#Pro     CCG     72450.00     20.44      0.49
+#Pro     CCA     30515.00      8.61      0.21
+
+# 毕赤酵母的密码子频率表
+CODOn
+Gly     GGG       468.00      5.76      0.00
+Gly     GGA      1550.00     19.06      0.00
+Gly     GGT      2075.00     25.52      0.00
+Gly     GGC       655.00      8.06      0.00
+Glu     GAG      2360.00     29.03      0.00
+Glu     GAA      3043.00     37.43      0.00
+Asp     GAT      2899.00     35.66      0.00
+Asp     GAC      2103.00     25.87      0.00
+Val     GTG       998.00     12.28      0.00
+Val     GTA       804.00      9.89      0.00
+Val     GTT      2188.00     26.91      0.00
+Val     GTC      1210.00     14.88      0.00
+Ala     GCG       314.00      3.86      0.00
+Ala     GCA      1228.00     15.10      0.00
+Ala     GCT      2351.00     28.92      0.00
+Ala     GCC      1348.00     16.58      0.00
+Arg     AGG       539.00      6.63      0.00
+Arg     AGA      1634.00     20.10      0.00
+Ser     AGT      1020.00     12.55      0.00
+Ser     AGC       621.00      7.64      0.00
+Lys     AAG      2748.00     33.80      0.00
+Lys     AAA      2433.00     29.93      0.00
+Asn     AAT      2038.00     25.07      0.00
+Asn     AAC      2168.00     26.67      0.00
+Met     ATG      1517.00     18.66      0.00
+Ile     ATA       906.00     11.14      0.00
+Ile     ATT      2532.00     31.14      0.00
+Ile     ATC      1580.00     19.43      0.00
+Thr     ACG       491.00      6.04      0.00
+Thr     ACA      1118.00     13.75      0.00
+Thr     ACT      1820.00     22.39      0.00
+Thr     ACC      1175.00     14.45      0.00
+Trp     TGG       834.00     10.26      0.00
+End     TGA        27.00      0.33      0.00
+Cys     TGT       626.00      7.70      0.00
+Cys     TGC       356.00      4.38      0.00
+End     TAG        40.00      0.49      0.00
+End     TAA        69.00      0.85      0.00
+Tyr     TAT      1300.00     15.99      0.00
+Tyr     TAC      1473.00     18.12      0.00
+Leu     TTG      2562.00     31.51      0.00
+Leu     TTA      1265.00     15.56      0.00
+Phe     TTT      1963.00     24.14      0.00
+Phe     TTC      1675.00     20.60      0.00
+Ser     TCG       598.00      7.36      0.00
+Ser     TCA      1234.00     15.18      0.00
+Ser     TCT      1983.00     24.39      0.00
+Ser     TCC      1344.00     16.53      0.00
+Arg     CGG       158.00      1.94      0.00
+Arg     CGA       340.00      4.18      0.00
+Arg     CGT       564.00      6.94      0.00
+Arg     CGC       175.00      2.15      0.00
+Gln     CAG      1323.00     16.27      0.00
+Gln     CAA      2069.00     25.45      0.00
+His     CAT       960.00     11.81      0.00
+His     CAC       737.00      9.07      0.00
+Leu     CTG      1215.00     14.94      0.00
+Leu     CTA       873.00     10.74      0.00
+Leu     CTT      1289.00     15.85      0.00
+Leu     CTC       620.00      7.63      0.00
+Pro     CCG       320.00      3.94      0.00
+Pro     CCA      1540.00     18.94      0.00
+Pro     CCT      1282.00     15.77      0.00
+Pro     CCC       553.00      6.80      0.00
+//
+
+# 枯草芽孢杆菌的密码子频率表
+#CODOn
+#Gly     GGG      9094.00     11.15      0.00
+#Gly     GGA     17743.00     21.76      0.00
+#Gly     GGT     10566.00     12.96      0.00
+#Gly     GGC     18967.00     23.26      0.00
+#Glu     GAG     18429.00     22.60      0.00
+#Glu     GAA     39217.00     48.09      0.00
+#Asp     GAT     27108.00     33.24      0.00
+#Asp     GAC     15485.00     18.99      0.00
+#Val     GTG     14105.00     17.30      0.00
+#Val     GTA     10638.00     13.05      0.00
+#Val     GTT     15193.00     18.63      0.00
+#Val     GTC     14067.00     17.25      0.00
+#Ala     GCG     16176.00     19.84      0.00
+#Ala     GCA     17205.00     21.10      0.00
+#Ala     GCT     15150.00     18.58      0.00
+#Ala     GCC     13433.00     16.47      0.00
+#Arg     AGG      3341.00      4.10      0.00
+#Arg     AGA      8561.00     10.50      0.00
+#Ser     AGT      5577.00      6.84      0.00
+#Ser     AGC     11766.00     14.43      0.00
+#Lys     AAG     16997.00     20.84      0.00
+#Lys     AAA     39449.00     48.38      0.00
+#Asn     AAT     18702.00     22.93      0.00
+#Asn     AAC     14522.00     17.81      0.00
+#Met     ATG     21424.00     26.27      0.00
+#Ile     ATA      7960.00      9.76      0.00
+#Ile     ATT     29487.00     36.16      0.00
+#Ile     ATC     22167.00     27.18      0.00
+#Thr     ACG     12110.00     14.85      0.00
+#Thr     ACA     17642.00     21.63      0.00
+#Thr     ACT      7082.00      8.68      0.00
+#Thr     ACC      7342.00      9.00      0.00
+#Trp     TGG      8765.00     10.75      0.00
+#End     TGA       621.00      0.76      0.00
+#Cys     TGT      2939.00      3.60      0.00
+#Cys     TGC      3472.00      4.26      0.00
+#End     TAG       381.00      0.47      0.00
+#End     TAA      1562.00      1.92      0.00
+#Tyr     TAT     18967.00     23.26      0.00
+#Tyr     TAC     10290.00     12.62      0.00
+#Leu     TTG     12914.00     15.84      0.00
+#Leu     TTA     16167.00     19.83      0.00
+#Phe     TTT     24450.00     29.98      0.00
+#Phe     TTC     11677.00     14.32      0.00
+#Ser     TCG      5266.00      6.46      0.00
+#Ser     TCA     11874.00     14.56      0.00
+#Ser     TCT     10320.00     12.66      0.00
+#Ser     TCC      6766.00      8.30      0.00
+#Arg     CGG      5664.00      6.95      0.00
+#Arg     CGA      3537.00      4.34      0.00
+#Arg     CGT      5903.00      7.24      0.00
+#Arg     CGC      6720.00      8.24      0.00
+#Gln     CAG     15089.00     18.50      0.00
+#Gln     CAA     16620.00     20.38      0.00
+#His     CAT     12832.00     15.74      0.00
+#His     CAC      6141.00      7.53      0.00
+#Leu     CTG     18757.00     23.00      0.00
+#Leu     CTA      3975.00      4.87      0.00
+#Leu     CTT     17772.00     21.79      0.00
+#Leu     CTC      8697.00     10.67      0.00
+#Pro     CCG     13316.00     16.33      0.00
+#Pro     CCA      5796.00      7.11      0.00
+#Pro     CCT      8640.00     10.60      0.00
+#Pro     CCC      2850.00      3.50      0.00
+#//
+
+# 热带假丝酵母的密码子频率表
+#CODOn
+#Gly     GGG       177.00      3.72      0.00
+#Gly     GGA       367.00      7.70      0.00
+#Gly     GGT      2267.00     47.59      0.00
+#Gly     GGC       432.00      9.07      0.00
+#Glu     GAG       603.00     12.66      0.00
+#Glu     GAA      2234.00     46.89      0.00
+#Asp     GAT      1501.00     31.51      0.00
+#Asp     GAC      1387.00     29.11      0.00
+#Val     GTG       335.00      7.03      0.00
+#Val     GTA       140.00      2.94      0.00
+#Val     GTT      1589.00     33.36      0.00
+#Val     GTC       999.00     20.97      0.00
+#Ala     GCG       124.00      2.60      0.00
+#Ala     GCA       398.00      8.35      0.00
+#Ala     GCT      1778.00     37.32      0.00
+#Ala     GCC      1098.00     23.05      0.00
+#Arg     AGG       115.00      2.41      0.00
+#Arg     AGA      1673.00     35.12      0.00
+#Ser     AGT       367.00      7.70      0.00
+#Ser     AGC       221.00      4.64      0.00
+#Lys     AAG      1811.00     38.02      0.00
+#Lys     AAA      1361.00     28.57      0.00
+#Asn     AAT       837.00     17.57      0.00
+#Asn     AAC      1406.00     29.51      0.00
+#Met     ATG       905.00     19.00      0.00
+#Ile     ATA       199.00      4.18      0.00
+#Ile     ATT      1500.00     31.49      0.00
+#Ile     ATC      1169.00     24.54      0.00
+#Thr     ACG       163.00      3.42      0.00
+#Thr     ACA       349.00      7.33      0.00
+#Thr     ACT      1196.00     25.11      0.00
+#Thr     ACC      1201.00     25.21      0.00
+#Trp     TGG       568.00     11.92      0.00
+#End     TGA         6.00      0.13      0.00
+#Cys     TGT       405.00      8.50      0.00
+#Cys     TGC        84.00      1.76      0.00
+#End     TAG        47.00      0.99      0.00
+#End     TAA        44.00      0.92      0.00
+#Tyr     TAT       705.00     14.80      0.00
+#Tyr     TAC      1081.00     22.69      0.00
+#Leu     TTG      2825.00     59.30      0.00
+#Leu     TTA       852.00     17.88      0.00
+#Phe     TTT      1197.00     25.13      0.00
+#Phe     TTC      1265.00     26.55      0.00
+#Ser     TCG       247.00      5.18      0.00
+#Ser     TCA       481.00     10.10      0.00
+#Ser     TCT       871.00     18.28      0.00
+#Ser     TCC       887.00     18.62      0.00
+#Arg     CGG        18.00      0.38      0.00
+#Arg     CGA        45.00      0.94      0.00
+#Arg     CGT       216.00      4.53      0.00
+#Arg     CGC        51.00      1.07      0.00
+#Gln     CAG       432.00      9.07      0.00
+#Gln     CAA      1331.00     27.94      0.00
+#His     CAT       462.00      9.70      0.00
+#His     CAC       665.00     13.96      0.00
+#Leu     CTG        82.00      1.72      0.00
+#Leu     CTA        62.00      1.30      0.00
+#Leu     CTT       380.00      7.98      0.00
+#Leu     CTC       197.00      4.14      0.00
+#Pro     CCG        98.00      2.06      0.00
+#Pro     CCA      1612.00     33.84      0.00
+#Pro     CCT       419.00      8.80      0.00
+#Pro     CCC       102.00      2.14      0.00
+#//
+
+# 解脂耶氏酵母的密码子频率表
+#CODOn
+#Gly     GGG     12883.00      4.37      0.00
+#Gly     GGA     61597.00     20.91      0.00
+#Gly     GGT     48902.00     16.60      0.00
+#Gly     GGC     64272.00     21.82      0.00
+#Glu     GAG    136241.00     46.25      0.00
+#Glu     GAA     55382.00     18.80      0.00
+#Asp     GAT     63259.00     21.47      0.00
+#Asp     GAC    112759.00     38.28      0.00
+#Val     GTG     75765.00     25.72      0.00
+#Val     GTA     11840.00      4.02      0.00
+#Val     GTT     46530.00     15.79      0.00
+#Val     GTC     63401.00     21.52      0.00
+#Ala     GCG     26190.00      8.89      0.00
+#Ala     GCA     32999.00     11.20      0.00
+#Ala     GCT     75193.00     25.52      0.00
+#Ala     GCC     96219.00     32.66      0.00
+#Arg     AGG      7208.00      2.45      0.00
+#Arg     AGA     24674.00      8.38      0.00
+#Ser     AGT     19861.00      6.74      0.00
+#Ser     AGC     28855.00      9.79      0.00
+#Lys     AAG    136914.00     46.48      0.00
+#Lys     AAA     36672.00     12.45      0.00
+#Asn     AAT     26184.00      8.89      0.00
+#Asn     AAC     92161.00     31.28      0.00
+#Met     ATG     66620.00     22.61      0.00
+#Ile     ATA      6342.00      2.15      0.00
+#Ile     ATT     66134.00     22.45      0.00
+#Ile     ATC     71810.00     24.38      0.00
+#Thr     ACG     25021.00      8.49      0.00
+#Thr     ACA     30844.00     10.47      0.00
+#Thr     ACT     47842.00     16.24      0.00
+#Thr     ACC     75551.00     25.65      0.00
+#Trp     TGG     35555.00     12.07      0.00
+#End     TGA      1148.00      0.39      0.00
+#Cys     TGT     17849.00      6.06      0.00
+#Cys     TGC     17903.00      6.08      0.00
+#End     TAG      2325.00      0.79      0.00
+#End     TAA      2494.00      0.85      0.00
+#Tyr     TAT     20043.00      6.80      0.00
+#Tyr     TAC     68146.00     23.13      0.00
+#Leu     TTG     30576.00     10.38      0.00
+#Leu     TTA      5280.00      1.79      0.00
+#Phe     TTT     46804.00     15.89      0.00
+#Phe     TTC     67672.00     22.97      0.00
+#Ser     TCG     45255.00     15.36      0.00
+#Ser     TCA     22845.00      7.75      0.00
+#Ser     TCT     64161.00     21.78      0.00
+#Ser     TCC     60695.00     20.60      0.00
+#Arg     CGG     22606.00      7.67      0.00
+#Arg     CGA     63881.00     21.68      0.00
+#Arg     CGT     17622.00      5.98      0.00
+#Arg     CGC     12915.00      4.38      0.00
+#Gln     CAG     94609.00     32.12      0.00
+#Gln     CAA     28769.00      9.77      0.00
+#His     CAT     28191.00      9.57      0.00
+#His     CAC     42490.00     14.42      0.00
+#Leu     CTG     98823.00     33.55      0.00
+#Leu     CTA     15548.00      5.28      0.00
+#Leu     CTT     38890.00     13.20      0.00
+#Leu     CTC     66461.00     22.56      0.00
+#Pro     CCG     20042.00      6.80      0.00
+#Pro     CCA     20234.00      6.87      0.00
+#Pro     CCT     51329.00     17.42      0.00
+#Pro     CCC     68633.00     23.30      0.00
+#//
+
+# 如果计算蛋白序列，直接替换下述的部分，和计算核酸序列二选一
+# ①如果单行输入的字符（nt或者aa）超过255个，超过255个的部分将丢失；②超过255个字符，请以genbank标准格式输入；
+PROTein
+	1 mskgeelftg vvpilveldg dvnghkfsvs gegegdatyg kltlkfictt gklpvpwptl
+	61 vttfsygvqc fsrypdhmkq hdffksampe gyvqertiff kddgnyktra evkfegdtlv
+	121 nrielkgidf kedgnilghk leynynshnv yimadkqkng ikvnfkirhn iedgsvqlad
+	281 hyqqntpigd gpvllpdnhy lstqsalskd pnekrdhmvl lefvtaagit hgmdelyk
+//
+
+#-------------------------------------------------------------------------------
+# OTHER EXAMPLES:
+#-------------------------------------------------------------------------------
+
+# Nucleotide examples:
+#
+# NUCLeotide
+#   CCATG
+# //
+#
+# NUCLeotide
+#   GGGTTC
+# //
+#
+# NUCLeotide
+#    1 CCATGGCGGCTGGTCAGGCGTTCCGTAAATTCCTGCCGCTGTTCGACCGTGTTCTCGTGG
+#   61 AACGCTCTGAAGTTGAAACC
+# //
+#
+# NUCLeotide
+#   RRW
+# //
+#
+# NUCLeotide REVERSE
+#   TCTGCGGGTGGTATCGTGCTGACCGGTTCTGCGGCTG
+#  121 CGAAAGTGCTGCAGGCGACCGTTGTTGCGGTTGGTTCTGGTTCTAAAGGTAAAGGTGGT
+# //
+#
+# NUCLeotide GAPFIX
+#  NNN
+# //
+#
+# NUCLeotide
+# ATCCAGCCGGTTTCTGTTAAGGTTGGTGACAAAGTTCTGCTGCCGGAATACGGCGGTA
+#  241 CCAAAGTTGTTCTGGACGACAAAGACTACTTCCTGTTCCGTGACGGTGACATCCTGGGTA
+#  301 AGTACGTTGACTAAGGGTTC
+# //
+#
+# NUCLeotide #reverse #gapfix
+#   gagctcggat ccactactcg acccacgcgt ccgcccacgc gtccggccag gacctctgtg
+#   aaccggtcgg ggcgggggcc gcctggccgg gagtctgctc ggcggtgggt ggccgaggaa
+#   gggagagaac gatcgcggag cagggcgccc gaactccggg cgccgcgcca tgcgccgggc
+#   cagccgagac tacggcaagt acctgcgcag ctcggaggag atgggcagcg gccccggcgt
+#   cccacacgag ggtccgctgc accccgcgcc ttctgcaccg gctccggcgc cgccacccgc
+#   cgcctcccgc tccatgttcc tggccctcct ggggctggga ctgggccagg tggtctgcag
+#   catcgctctg ttcctgtact ttcgagcgca gatggatcct aacagaatat cagaagacag
+#   cactcactgc ttttatagaa tcctgagact ccatgaaaac gcaggtttgc aggactcgac
+#   tctggagagt gaagacacac tacctgactc ctgcaggagg atgaaacaag cctttcaggg
+#   ggccgtgcag aaggaactgc aacacattgt ggggccacag cgcttctcag gagctccagc
+#   tatgatggaa ggctcatggt tggatgtggc ccagcgaggc aagcctgagg cccagccatt
+#   tgcacacctc accatcaatg ctgccagcat cccatcgggt tcccataaag tcactctgtc
+#   ctcttggtac cacgatcgag gctgggccaa gatctctaac atgacgttaa gcaacggaaa
+#   actaagggtt aaccaagatg gcttctatta cctgtacgcc aacatttgct ttcggcatca
+#   tgaaacatcg ggaagcgtac ctacagacta tcttcagctg atggtgtatg tcgttaaaac
+#   cagcatcaaa atcccaagtt ctcataacct gatgaaagga gggagcacga aaaactggtc
+#   gggcaattct gaattccact tttattccat aaatgttggg ggatttttca agctccgagc
+#   tggtgaagaa attagcattc aggtgtccaa cccttccctg ctggatccgg atcaagatgc
+#   gacgtacttt ggggctttca aagttcagga catagactga gactcatttc gtggaacatt
+# //
+#
+
+# Protein examples:
+#
+# PROTein
+#   AAGQAFRKFLPLFDRVLVERSEVET
+# //
+#
+# PROTein GAPFIX
+#   K
+# //
+#
+# PROTein
+#   SAGGIVLTGSAAAKVLQATVVAVGSGSKGKGG
+# //
+#
+# PROTein GAPFIX
+#   E
+# //
+#
+# PROTein
+#   IQPVSVKVGDKVLLPEYGGTKVVLDDKDYFLFRDGDILGKYVDX
+# //
+#
+# Pattern examples:
+#
+# PATTern
+#   EcoRI       GAATTC
+#   PstI        CtgcaG
+#   BamHI       GGATCC
+#   KpnI        GGTACC
+#    NdeI        CATATG
+#    PvuII       CAGCTG
+#    SwaI        ATTTAAAT
+#    FseI        GGCCGGCC
+#    NotI        GCGGCCGC
+#    NcoI        CCATGG
+#    silly   RWGGTcGRY  
+# //
+#
+# PROTein #reverse #gapfix
+# PROTein
+#  pattdkslkd iliqgtknlp ileiasnnqp qnvdsvcsgt lqktedvhlm 
+#  gftlsgqkva dspleaskrw afrtgvppkn veytegeeak tcynisvtdp 
+# //
+
+
+#-------------------------------------------------------------------------------
+# MORE EXAMPLES TO TRY:
+#-------------------------------------------------------------------------------
+
+#NUCLeotide 
+#        1 gagctcggat ccactactcg acccacgcgt ccgcccacgc gtccggccag gacctctgtg
+#       61 aaccggtcgg ggcgggggcc gcctggccgg gagtctgctc ggcggtgggt ggccgaggaa
+#      121 gggagagaac gatcgcggag cagggcgccc gaactccggg cgccgcgcca tgcgccgggc
+#      181 cagccgagac tacggcaagt acctgcgcag ctcggaggag atgggcagcg gccccggcgt
+#      241 cccacacgag ggtccgctgc accccgcgcc ttctgcaccg gctccggcgc cgccacccgc
+#      301 cgcctcccgc tccatgttcc tggccctcct ggggctggga ctgggccagg tggtctgcag
+#      361 catcgctctg ttcctgtact ttcgagcgca gatggatcct aacagaatat cagaagacag
+#      421 cactcactgc ttttatagaa tcctgagact ccatgaaaac gcaggtttgc aggactcgac
+#      481 tctggagagt gaagacacac tacctgactc ctgcaggagg atgaaacaag cctttcaggg
+#      541 ggccgtgcag aaggaactgc aacacattgt ggggccacag cgcttctcag gagctccagc
+#      601 tatgatggaa ggctcatggt tggatgtggc ccagcgaggc aagcctgagg cccagccatt
+#      661 tgcacacctc accatcaatg ctgccagcat cccatcgggt tcccataaag tcactctgtc
+#      721 ctcttggtac cacgatcgag gctgggccaa gatctctaac atgacgttaa gcaacggaaa
+#      781 actaagggtt aaccaagatg gcttctatta cctgtacgcc aacatttgct ttcggcatca
+#      841 tgaaacatcg ggaagcgtac ctacagacta tcttcagctg atggtgtatg tcgttaaaac
+#      901 cagcatcaaa atcccaagtt ctcataacct gatgaaagga gggagcacga aaaactggtc
+#      961 gggcaattct gaattccact tttattccat aaatgttggg ggatttttca agctccgagc
+#     1021 tggtgaagaa attagcattc aggtgtccaa cccttccctg ctggatccgg atcaagatgc
+#     1081 gacgtacttt ggggctttca aagttcagga catagactga gactcatttc gtggaacatt
+#//
+
+#NUCLeotide REVERSE
+#      361 tttcccagtc acgacgttgt aaaacgacgg ccagtgccaa gcttgcatgc ctgcaggtcg
+#      421 actctagagg atccccgggt accgagctcg aattcgtaat catggtcata gctgtttcct
+#//
+
+#PROTein gapfix
+#RRRRR
+#//
+
+#NUCLeotide
+#GTAGCGACTAGCAT
+#//
+
+#NUCLeotide
+#      361 tttcccagtc acgacgttgt aaaacgacgg ccagtgccaa gcttgcatgc ctgcaggtcg
+#      421 actctagagg atccccgggt accgagctcg aattcgtaat catggtcata gctgtttcct
+#//
+
+#PROTein REVERSE (hBD2)
+#  GIGDPVTCLDCGAISHPVFCPDRYKQIGTCGLPGTKCCKKPXX
+#//
+
+#NUCLeotide gapfix
+#TGATGATTATTA
+#//
+
+#PROTein
+#  KVFGDCELAAAMKRHGLDNYRGYSLGNWVCAAKFESNFNTQATNRNTDGSTDYGILQINS
+#  RWWCNDGRTPGSRNLCNIPCSALLSSDITASVNCAKKIVSDGNGMNAWVAWRNRCKGTDV
+#  XX
+#//
+
+#NUCLeotide gapfix
+#TAGAAAACGC
+#//
+
+
+#PROTein (GFP)
+#  1 mskgeelftg vvpilveldg dvnghkfsvs gegegdatyg kltlkfictt gklpvpwptl
+# 61 vttfsygvqc fsrypdhmkq hdffksampe gyvqertiff kddgnyktra evkfegdtlv
+#121 nrielkgidf kedgnilghk leynynshnv yimadkqkng ikvnfkirhn iedgsvqlad
+#281 hyqqntpigd gpvllpdnhy lstqsalskd pnekrdhmvl lefvtaagit hgmdelyk
+#//
+
+#NUCLeotide (GFP)
+#   1 GGGGGGGGGGGTGAAGAACTGTTCACCGGCGTTGTTCCGATCCTGGTTGAACTGGATGGT
+#  61 GACGTGAATGGTCACAAATTCTCTGTTTCTGGTGAGGGTGAAGGCGACGCGACCTACGGC
+# 121 AAACTCACCCTGAAATTCATCTGCACCACCGGTAAACTGCCGGTTCCGTGGCCGACCCTG
+# 181 GTTACCACCTTCTCTTACGGTGTTCAGTGTTTCTCTCGTTATCCGGACCACATGAAACAG
+# 241 CACGATTTTTTCAAATCTGCGATGCCGGAAGGTTACGTTCAGGAACGTACCATCTTCTTC
+# 301 AAGGACGACGGCAACTATAAAACCCGTGCGGAAGTTAAATTCGAAGGTGACACCCTCGTG
+# 361 AACCGTATCGAACTGAAAGGTATCGACTTCAAAGAAGACGGTAATATCCTGGGCCACAAA
+# 421 CTCGAATACAACTACAACTCCCACAACGTTTACATTATGGCGGACAAGCAAAAGAACGGT
+# 481 ATCAAAGTGAACTTCAAGATCCGCCACAACATCGAGGACGGTTCTGTTCAGCTCGCGGAT
+# 541 CACTACCAACAGAATACCCCAATCGGCGACGGTCCGGTTCTCCTGCCGGACAACCACTAT
+# 601 CTGTCTACCCAGTCTGCGCTGTCTAAGGACCCGAACGAAAAACGCGATCATATGGTGCTG
+# 661 CTGGAATTCGTTACCGCGGCTGGTATTACTCACGGTATGGACGAACTGTACAAA
+#//
+
+#PROTein (Ovalbumin)
+#  1 gsigaasmef cfdvfkelkv hhanenifyc piaimsalam vylgakdstr tqinkvvrfd
+# 61 klpgfgdxie aqcgtsvnvh sslrdilnqi tkpndvysfs lasrlyaeer ypilpeylqc
+#121 vkelyrggle pinfqtaadq arelinswve sqtngiirnv lqpxsvdsqt amvlvnaivf
+#181 kglwekafkd edtqampfrv teqeskpvqm myqiglfrva smasekmkil elpfaxgtms
+#241 mlvllpdevs gleqlesiin fekltewtss nvmeerkikv ylprmkmeek ynltsvlmam
+#301 gitdvfsssa nlsgissaex lkisqavhaa haeineagre vvgxaeagvd aasvseefra
+#361 dhpflfcikh iatnavlffg rcvsp
+#//
+
+#PROTein (Human Asparaginase) REVERSE
+#  1 MAHHHHHHAR AVGPERRLLA VYTGGTIGMR SELGVLVPGT GLAAILRTLP MFHDEEHARA
+# 61 RGLSEDTLVL PPDSRNQRIL YTVLECQPLF DSSDMTIAEW VRVAQTIKRH YEQYHGFVVI
+#121 HGTDTMAFAA SMLSFMLENL QKTVILTGAQ VPIHALWSDG RENLLGALLM AGQYVIPEVC
+#181 LFFQNQLFRG NRATKVDARR FAAFCSPNLL PLATVGADIT INRELVRKVD GKAGLVVHSS
+#241 MEQDVGLLRL YPGIPAALVR AFLQPPLKGV VMETFGSGNG PTKPDLLQEL RVATERGLVI
+#301 VNCTHCLQGA VTTDYAAGMA MAGAGVISGF DMTSEAALAK LSYVLGQPGL SLDVRKELLT
+#361 KDLRGEMTPP SVEERRPSLQ GNTLGGGVSW LLSLSGSQEA DALRNALVPS LACAAAHAGD
+#421 VEALQALVEL GSDLGLVDFN GQTPLHAAAR GGHTEAVTML LQRGVDVNTR DTDGFSPLLL
+#481 AVRGRHPGVI GLLREAGASL STQELEEAGT ELCRLAYRAD LEGLQVWWQA GADLGQPGYD
+#541 GHSALHVAEA AGNLAVVAFL QSLEGAVGAQ APCPEVLPGV X
+#//
+
+#PROTein (lysine ketoglutarate reductase/saccharopine dehydrogenase)
+#  1 MLQVHRTGLG RLGVSLSKGL HHKAVLAVRR EDVNAWERRA PLAPKHIKGI TNLGYKVLIQ
+# 61 PSNRRAIHDK DYVKAGGILQ EDISEACLIL GVKRPPEEKL MSRKTYAFFS HTIKAQEANM
+#121 GLLDEILKQE IRLIDYEKMV DHRGVRVVAF GQWAGVAGMI NILHGMGLRL LALGHHTPFM
+#181 HIGMAHNYRN SSQAVQAVRD AGYEISLGLM PKSIGPLTFV FTGTGNVSKG AQAIFNELPC
+#241 EYVEPHELKE VSQTGDLRKV YGTVLSRHHH LVRKTDAVYD PAEYDKHPER YISRFNTDIA
+#301 PYTTCLINGI YWEQNTPRLL TRQDAQSLLA PGKFSPAGVE GCPALPHKLV AICDISADTG
+#361 GSIEFMTECT TIEHPFCMYD ADQHIIHDSV EGSGILMCSI DNLPAQLPIE ATECFGDMLY
+#421 PYVEEMILSD ATQPLESQNF SPVVRDAVIT SNGTLPDKYK YIQTLRESRE RAQSLSMGTR
+#481 RKVLVLGSGY ISEPVLEYLS RDGNIEITVG SDMKNQIEQL GKKYNINPVS MDICKQEEKL
+#541 GFLVAKQDLV ISLLPYVLHP LVAKACITNK VNMVTASYIT PALKELEKSV EDAGITIIGE
+#601 LGLDPGLDHM LAMETIDKAK EVGATIESYI SYCGGLPAPE HSNNPLRYKF SWSPVGVLMN
+#661 VMQSATYLLD GKVVNVAGGI SFLDAVTSMD FFPGLNLEGY PNRDSTKYAE IYGISSAHTL
+#721 LRGTLRYKGY MKALNGFVKL GLINREALPA FRPEANPLTW KQLLCDLVGI SPSSEHDVLK
+#781 EAVLKKLGGD NTQLEAAEWL GLLGDEQVPQ AESILDALSK HLVMKLSYGP EEKDMIVMRD
+#841 SFGIRHPSGH LEHKTIDLVA YGDINGFSAM AKTVGLPTAM AAKMLLDGEI GAKGLMGPFS
+#901 KEIYGPILER IKAEGIIYTT QSTIKPX
+#//
+
+#NUCLeotide
+#GGGG
+#//
+
+#NUCLeotide (pUC18)
+#        1 tcgcgcgttt cggtgatgac ggtgaaaacc tctgacacat gcagctcccg gagacggtca
+#       61 cagcttgtct gtaagcggat gccgggagca gacaagcccg tcagggcgcg tcagcgggtg
+#      121 ttggcgggtg tcggggctgg cttaactatg cggcatcaga gcagattgta ctgagagtgc
+#      181 accatatgcg gtgtgaaata ccgcacagat gcgtaaggag aaaataccgc atcaggcgcc
+#      241 attcgccatt caggctgcgc aactgttggg aagggcgatc ggtgcgggcc tcttcgctat
+#      301 tacgccagct ggcgaaaggg ggatgtgctg caaggcgatt aagttgggta acgccagggt
+#      361 tttcccagtc acgacgttgt aaaacgacgg ccagtgccaa gcttgcatgc ctgcaggtcg
+#      421 actctagagg atccccgggt accgagctcg aattcgtaat catggtcata gctgtttcct
+#      481 gtgtgaaatt gttatccgct cacaattcca cacaacatac gagccggaag cataaagtgt
+#      541 aaagcctggg gtgcctaatg agtgagctaa ctcacattaa ttgcgttgcg ctcactgccc
+#      601 gctttccagt cgggaaacct gtcgtgccag ctgcattaat gaatcggcca acgcgcgggg
+#      661 agaggcggtt tgcgtattgg gcgctcttcc gcttcctcgc tcactgactc gctgcgctcg
+#      721 gtcgttcggc tgcggcgagc ggtatcagct cactcaaagg cggtaatacg gttatccaca
+#      781 gaatcagggg ataacgcagg aaagaacatg tgagcaaaag gccagcaaaa ggccaggaac
+#      841 cgtaaaaagg ccgcgttgct ggcgtttttc cataggctcc gcccccctga cgagcatcac
+#      901 aaaaatcgac gctcaagtca gaggtggcga aacccgacag gactataaag ataccaggcg
+#      961 tttccccctg gaagctccct cgtgcgctct cctgttccga ccctgccgct taccggatac
+#     1021 ctgtccgcct ttctcccttc gggaagcgtg gcgctttctc atagctcacg ctgtaggtat
+#     1081 ctcagttcgg tgtaggtcgt tcgctccaag ctgggctgtg tgcacgaacc ccccgttcag
+#     1141 cccgaccgct gcgccttatc cggtaactat cgtcttgagt ccaacccggt aagacacgac
+#     1201 ttatcgccac tggcagcagc cactggtaac aggattagca gagcgaggta tgtaggcggt
+#     1261 gctacagagt tcttgaagtg gtggcctaac tacggctaca ctagaaggac agtatttggt
+#     1321 atctgcgctc tgctgaagcc agttaccttc ggaaaaagag ttggtagctc ttgatccggc
+#     1381 aaacaaacca ccgctggtag cggtggtttt tttgtttgca agcagcagat tacgcgcaga
+#     1441 aaaaaaggat ctcaagaaga tcctttgatc ttttctacgg ggtctgacgc tcagtggaac
+#     1501 gaaaactcac gttaagggat tttggtcatg agattatcaa aaaggatctt cacctagatc
+#     1561 cttttaaatt aaaaatgaag ttttaaatca atctaaagta tatatgagta aacttggtct
+#     1621 gacagttacc aatgcttaat cagtgaggca cctatctcag cgatctgtct atttcgttca
+#     1681 tccatagttg cctgactccc cgtcgtgtag ataactacga tacgggaggg cttaccatct
+#     1741 ggccccagtg ctgcaatgat accgcgagac ccacgctcac cggctccaga tttatcagca
+#     1801 ataaaccagc cagccggaag ggccgagcgc agaagtggtc ctgcaacttt atccgcctcc
+#     1861 atccagtcta ttaattgttg ccgggaagct agagtaagta gttcgccagt taatagtttg
+#     1921 cgcaacgttg ttgccattgc tacaggcatc gtggtgtcac gctcgtcgtt tggtatggct
+#     1981 tcattcagct ccggttccca acgatcaagg cgagttacat gatcccccat gttgtgcaaa
+#     2041 aaagcggtta gctccttcgg tcctccgatc gttgtcagaa gtaagttggc cgcagtgtta
+#     2101 tcactcatgg ttatggcagc actgcataat tctcttactg tcatgccatc cgtaagatgc
+#     2161 ttttctgtga ctggtgagta ctcaaccaag tcattctgag aatagtgtat gcggcgaccg
+#     2221 agttgctctt gcccggcgtc aatacgggat aataccgcgc cacatagcag aactttaaaa
+#     2281 gtgctcatca ttggaaaacg ttcttcgggg cgaaaactct caaggatctt accgctgttg
+#     2341 agatccagtt cgatgtaacc cactcgtgca cccaactgat cttcagcatc ttttactttc
+#     2401 accagcgttt ctgggtgagc aaaaacagga aggcaaaatg ccgcaaaaaa gggaataagg
+#     2461 gcgacacgga aatgttgaat actcatactc ttcctttttc aatattattg aagcatttat
+#     2521 cagggttatt gtctcatgag cggatacata tttgaatgta tttagaaaaa taaacaaata
+#     2581 ggggttccgc gcacatttcc ccgaaaagtg ccacctgacg tctaagaaac cattattatc
+#     2641 atgacattaa cctataaaaa taggcgtatc acgaggccct ttcgtc
+#//

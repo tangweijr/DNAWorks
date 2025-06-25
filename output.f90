@@ -1534,10 +1534,10 @@ SUBROUTINE Print_Oligo_Log(num)
   DO i=1,last
     IF (MutantRun) THEN
       IF (NewOligo(i)(1:OligoSize(i)).ne.OldOligo(i)(1:OligoSize(i))) THEN
-        WRITE(UNIT=num,FMT="(i3,1x,a,1x,i3)") i,NewOligo(i)(1:OligoSize(i)),OligoSize(i)
+        WRITE(UNIT=num,FMT="(a20,'_',i0,',',a,',',i0,'nt')") TRIM(jobname),i,NewOligo(i)(1:OligoSize(i)),OligoSize(i)
       END IF
     ELSE
-      WRITE(UNIT=num,FMT="(i3,1x,a,1x,i3)") i,NewOligo(i)(1:OligoSize(i)),OligoSize(i)
+      WRITE(UNIT=num,FMT="(a20,'_',i0,',',a,',',i0,'nt')") TRIM(jobname),i,NewOligo(i)(1:OligoSize(i)),OligoSize(i)
     END IF
   END DO
 
