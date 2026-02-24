@@ -96,6 +96,7 @@ PATTern
    SacI GAGCTC
    SalI GTCGAC
    BglII AGATCT
+   Esp3I CGTCTC
 //
 
 # 如果计算核苷酸序列，直接替换下述的部分，和计算蛋白质序列二选一
