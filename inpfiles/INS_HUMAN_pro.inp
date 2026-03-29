@@ -1,0 +1,21 @@
+title "INS_HUMAN"
+melting low 62
+length low 50 high 57
+frequency threshold 20
+logfile "./results\INS_HUMAN_pro.txt"
+
+PATTern
+   BsaI GGTCTC
+   BspQI GCTCTTC
+   SacI GAGCTC
+   SalI GTCGAC
+   BglII AGATCT
+   Esp3I CGTCTC
+//
+
+
+
+PROTein
+      1   FVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAEDLQVGQVELGGGPGAGSLQPLALEG
+      61  SLQKRGIVEQCCTSICSLYQLENYCN
+//
