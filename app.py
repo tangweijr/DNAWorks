@@ -272,16 +272,18 @@ def generate_inp_content(
     len_high: int,
     frequency: int,
     codon_table: str,
-    log_path: str
+    log_path: str,
+    scored: bool = False
 ) -> str:
     """生成 DNAWorks 输入文件内容"""
 
     codon_section = CODON_TABLES.get(codon_table, codon_table) if mode == 'PROTein' else ""
+    scored_str = " scored" if scored else ""
 
     content = f'''title "{title}"
 melting low {melting}
 length low {len_low} high {len_high}
-frequency threshold {frequency}
+frequency threshold {frequency}{scored_str}
 logfile "{log_path}"
 
 PATTern
@@ -311,7 +313,8 @@ def run_dnaworks(
     len_high: int,
     frequency: int,
     codon_table: str,
-    custom_codon_table: str = ""
+    custom_codon_table: str = "",
+    scored: bool = False
 ) -> tuple:
     """
     主运行函数
@@ -333,7 +336,7 @@ def run_dnaworks(
     effective_codon_table = custom_codon_table if codon_table == "自定义" else codon_table
     inp_content = generate_inp_content(
         title, mode, clean_seq, formatted_seq,
-        melting, len_low, len_high, frequency, effective_codon_table, log_path
+        melting, len_low, len_high, frequency, effective_codon_table, log_path, scored
     )
 
     try:
@@ -431,15 +434,13 @@ with gr.Blocks(title="DNAWorks 寡核苷酸设计", css=css) as demo:
 
             title = gr.Textbox(
                 label="任务名称",
-                value="INS_HUMAN",
-                info="用于命名输出文件"
+                value="INS_HUMAN"
             )
 
             mode = gr.Radio(
                 label="输入类型",
                 choices=[("蛋白质序列 (Protein)", "PROTein"), ("核酸序列 (Nucleotide)", "NUCLeotide")],
-                value="PROTein",
-                info="选择输入的是蛋白序列还是核酸序列"
+                value="PROTein"
             )
 
             sequence = gr.Textbox(
@@ -458,8 +459,14 @@ with gr.Blocks(title="DNAWorks 寡核苷酸设计", css=css) as demo:
                 minimum=50,
                 maximum=80,
                 value=62,
-                step=1,
-                info="第一轮 Tm 会自动设置为比此值低 4~5℃"
+                step=1
+            )
+
+            first_tm_display = gr.Textbox(
+                label="第一轮 Tm (℃)",
+                value="58℃",
+                interactive=False,
+                lines=1
             )
 
             len_low = gr.Slider(
@@ -494,12 +501,19 @@ with gr.Blocks(title="DNAWorks 寡核苷酸设计", css=css) as demo:
             )
 
             frequency = gr.Slider(
-                label="最低密码子频率 (%)",
+                label="最低密码子频率(%)",
                 minimum=5,
                 maximum=30,
                 value=20,
                 step=1,
                 info="仅使用频率高于此值的密码子"
+            )
+
+            scored = gr.Radio(
+                label="是否使用scored模式",
+                choices=["否", "是"],
+                value="否",
+                info="选中时，将平均分布重复氨基酸序列的密码子频率"
             )
 
     run_btn = gr.Button("🚀 生成并运行 DNAWorks", variant="primary", size="lg")
@@ -533,17 +547,17 @@ with gr.Blocks(title="DNAWorks 寡核苷酸设计", css=css) as demo:
 
     run_btn.click(
         fn=run_dnaworks,
-        inputs=[title, mode, sequence, melting, len_low, len_high, frequency, codon_table, custom_codon_table],
+        inputs=[title, mode, sequence, melting, len_low, len_high, frequency, codon_table, custom_codon_table, scored],
         outputs=[status_output, result_output, primer_output]
     )
 
     # 实时更新第一轮Tm提示
     melting.change(
-        fn=lambda x: f"ℹ️ 第一轮 Tm 将设置为: {x - 4}℃",
+        fn=lambda x: f"{x - 4}℃",
         inputs=[melting],
-        outputs=[]
+        outputs=[first_tm_display]
     )
 
 # 启动
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(server_port=7861, server_name="0.0.0.0")
